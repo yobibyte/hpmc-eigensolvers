@@ -128,23 +128,32 @@ int main(void) {
   
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
-    //LAPACKE_dstevx(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, double abstol, M, W, Z, ldz, ifail);
-    //LAPACKE_dsemr(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, M, W, Z, ldz, nzc, isuppz, tryrac);
-    
+   
+    /*
+    // DSTEQR
     //lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, NULL, p.p_size); 
+    */
+
+    /*
+    // DSTEVX
     lapack_int *M = malloc(sizeof(double)*p.p_size);
     int VL, VU, IL, IU;
-    //int ISUPPZ[p.p_size*2];
     double *W = malloc(sizeof(double)*p.p_size);
-    double ABSTOL = 1.0;
+    double ABSTOL = 0.001;
     int *ifail;
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, p.p_size, p.D, p.E, VL, VU, IL, IU, ABSTOL, M, W, Z, p.p_size, ifail);
-    //lapack_logical *tryrac = malloc(sizeof(lapack_logical));
-    //lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, 'A', p.p_size, p.D, p.E, VL, VU, IL, IU, M, W, Z, p.p_size, p.p_size, ISUPPZ, tryrac); 
+    */
     
-    //lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
+    //DSTEMR
+    lapack_int *M = malloc(sizeof(double)*p.p_size);
+    int VL, VU, IL, IU;
+    double *W = malloc(sizeof(double)*p.p_size);
+    double ABSTOL = 0.001;
+    int ISUPPZ[p.p_size*2];
+    lapack_logical *tryrac = malloc(sizeof(lapack_logical));
+    lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, RANGE, p.p_size, p.D, p.E, VL, VU, IL, IU, M, W, Z, p.p_size, p.p_size, ISUPPZ, tryrac); 
     
     printf("INFO : %d; ", info); 
-    print_array(p.p_size, p.D);
+    print_array(p.p_size, W);
   }
 }
