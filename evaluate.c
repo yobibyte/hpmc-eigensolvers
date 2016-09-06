@@ -1,7 +1,7 @@
 // TODO read csv with maximum precision
 // TODO check for memleaks
 // TODO add computing the eigenvectors also
-
+// TODO properly load N_PROBLEMS
 
 #include <stdio.h>
 //#include <lapack.h>
@@ -11,16 +11,17 @@
 
 #define MATRIX_LAYOUT 1
 #define MODE 'N'
+#define RANGE 'A'
+#define N_PROBLEMS 5
+
 struct Eigenproblem {
   int p_size;
   double *eigenvalues;
+  // before reduction to symmetric tridiagonal
   double *matrix;
-};
-
-struct Eigenproblem_ref {
-  int p_size;
-  double *eigenvalues;
+  // diagonal after reduction to symm tridiagonal
   double *D;
+  // subdiagonal after reduction to symm tridiagonal
   double *E;
 };
 
@@ -36,16 +37,12 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
   sscanf(curr_line, "%d", &n_problems);
 
   char *curr_buf;
-
   char *eigenvalues_str;
   char *curr_matrix_str;
   char *curr_eigenval;
-  char *cmdarray[512];
+  char **cmdarray;
 
-  //struct Eigenproblem problems[n_problems];
-  
   for(int i=0; i<n_problems;i++) {
-    
     read = getline(&curr_line, &len, f);
     char *end_str = NULL;
     curr_buf        = strtok_r(curr_line, ";", &end_str);
@@ -54,15 +51,15 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     
     printf("Reading eigenproblem #%d with dim %s\n", i, curr_buf);
     
-    int cpsize;
-    sscanf(curr_buf, "%d", &cpsize); 
+    int cpdim;
+    sscanf(curr_buf, "%d", &cpdim); 
  
     char *eigenvalues_rem;
     curr_eigenval = strtok_r(eigenvalues_str, ",", &eigenvalues_rem);
-    double curr_eigenvals[cpsize];
+    double curr_eigenvals[cpdim];
     sscanf(curr_eigenval, "%lf", &curr_eigenvals[0]);
     //printf("%f\t", curr_eigenvals[0]); 
-    for(int j=1;j<cpsize;j++){
+    for(int j=1;j<cpdim;j++){
       curr_eigenval     = strtok_r(NULL, ",", &eigenvalues_rem);
       sscanf(curr_eigenval, "%lf", &curr_eigenvals[j]);
       //printf("%f\t", curr_eigenvals[j]);
@@ -72,22 +69,40 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     char *curr_elem;
     char *cur_mat_rem;
     curr_elem = strtok_r(curr_matrix_str, ",", &cur_mat_rem);
-    double curr_matrix[cpsize*cpsize];
+    int cplen = (int) (cpdim*(cpdim+1)/2);
+    
+    double curr_matrix[cplen];
     sscanf(curr_elem, "%lf", &curr_matrix[0]);
     //printf("%lf ", curr_matrix[0]); 
-    for(int j=1;j<cpsize*cpsize;j++){
+    for(int j=1;j<cplen;j++){
       curr_elem= strtok_r(NULL, ",", &cur_mat_rem);
       sscanf(curr_elem, "%lf", &curr_matrix[j]);
       //printf("%lf ", curr_matrix[j]);
     }    
     //printf("\n");
 
-    
+        
     struct Eigenproblem p;
-    p.p_size = cpsize;  
+    p.p_size = cpdim;  
     p.matrix = curr_matrix;    
-    p.eigenvalues = curr_eigenvals;  
-  
+    p.eigenvalues = curr_eigenvals;
+
+
+    p.D = malloc(sizeof(double) * cpdim);
+    p.E = malloc(sizeof(double) * (cpdim-1));
+    //double D[cpdim];
+    //double E[cpdim-1];
+    double TAU[cpdim-1];
+    //lapack_int LAPACKE_dsytrd(int matrix_layout, char uplo, lapack_int n, double* a,
+    //lapack_int lda, double* d, double* e, double* tau )
+    
+    LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, p.matrix, cpdim, p.D, p.E, TAU);
+    /*
+    for (int l=0;l<cplen;l++) {
+      printf("%f   ", p.D[l]);
+    }  
+    printf("\n");
+    */
     problems[i] = p;
   }
   printf("Read %d eigenproblems into the memory.\n", n_problems);
@@ -98,33 +113,38 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
   }
 }
 
-//LAPACKE_dsteqr(MATRIX_LAYOUT, MODE, p_size, D, E, Z, ldz);
-//LAPACKE_dstevx(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, double abstol, M, W, Z, ldz, ifail);
-//LAPACKE_dsemr(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, M, W, Z, ldz, nzc, isuppz, tryrac);
-
-
-void solve_dstemr() {
-  // MR3 
-}
-
-void solve_dstevx(struct Eigenproblem *p, double *result){
-  // BX+II  
-}
-
-void solve_dsteqr(int n, double *D, double *E, double *result) {
-  // QR
-  lapack_int ldz = 1;
-  double *Z;
-  LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, n, D, E, Z, ldz); 
+void print_array(int len, double *array) {
+  for(int i=0; i<len;i++){
+    printf("%f ", array[i]);
+  }
+  printf("\n");
 }
 
 int main(void) {
-  struct Eigenproblem problems[5]; //TODO CHANGE TO VAR
+  struct Eigenproblem problems[N_PROBLEMS];
   load_problems("data.csv", problems);
-//
-  double D[3] = {1,2,3};
-  double E[2] = {1,3};
+  
   double *Z;
-  int ldz = 3;
-  lapack_int t = LAPACKE_dsteqr(MATRIX_LAYOUT, 'N', 3, D, E, Z, ldz); 
+  
+  for (int i=0;i<N_PROBLEMS;i++) {
+    struct Eigenproblem p = problems[i];
+    //LAPACKE_dstevx(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, double abstol, M, W, Z, ldz, ifail);
+    //LAPACKE_dsemr(MATRIX_LAYOUT, MODE, char range, p_size, D, E, VL, VU, IL, IU, M, W, Z, ldz, nzc, isuppz, tryrac);
+    
+    //lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, NULL, p.p_size); 
+    lapack_int *M = malloc(sizeof(double)*p.p_size);
+    int VL, VU, IL, IU;
+    //int ISUPPZ[p.p_size*2];
+    double *W = malloc(sizeof(double)*p.p_size);
+    double ABSTOL = 1.0;
+    int *ifail;
+    lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, p.p_size, p.D, p.E, VL, VU, IL, IU, ABSTOL, M, W, Z, p.p_size, ifail);
+    //lapack_logical *tryrac = malloc(sizeof(lapack_logical));
+    //lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, 'A', p.p_size, p.D, p.E, VL, VU, IL, IU, M, W, Z, p.p_size, p.p_size, ISUPPZ, tryrac); 
+    
+    //lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
+    
+    printf("INFO : %d; ", info); 
+    print_array(p.p_size, p.D);
+  }
 }
