@@ -3,13 +3,14 @@
 // TODO add computing the eigenvectors also
 // TODO properly load N_PROBLEMS
 
+#include <cblas.h>
 #include <stdio.h>
 #include <lapacke.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MATRIX_LAYOUT 1
-#define MODE 'N'
+#define MODE 'V'
 #define RANGE 'A'
 #define N_PROBLEMS 5
 
@@ -22,7 +23,28 @@ struct Eigenproblem {
   double *D;
   // subdiagonal after reduction to symm tridiagonal
   double *E;
+  // orthogonal matrix for solvers
+  double *Q;
 };
+
+void eye(int dim, double *mat) {
+  for(int i=0;i<dim;i++){
+    for(int j=0;j<dim;j++){
+      if(i==j) { 
+        mat[i*dim+j%dim] = 1.0;
+      } else {
+        mat[i*dim+j%dim] = 0.0;
+      }
+    }
+  }
+}
+
+void print_array(int len, double *array) {
+  for(int i=0; i<len;i++){
+    printf("%f ", array[i]);
+  }
+  printf("\n");
+}
 
 void load_problems(char *filename, struct Eigenproblem *problems) {
   FILE *f = fopen("data.csv", "r");
@@ -49,7 +71,8 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     
     int cpdim;
     sscanf(curr_buf, "%d", &cpdim); 
-    int cplen = cpdim*(cpdim+1)/2;
+    int cplen = cpdim*cpdim;
+    //int cplen = cpdim*(cpdim+1)/2;
     double curr_eigenvals[cpdim];
     double curr_matrix[cplen];
     
@@ -73,12 +96,34 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     p.eigenvalues = curr_eigenvals;
     p.D = malloc(sizeof(double) * cpdim);
     p.E = malloc(sizeof(double) * (cpdim-1));
-    
+    p.Q = malloc(sizeof(double) * cplen);
+    eye(cpdim, p.Q);
+    //p.Q = calloc(cplen, sizeof(double));
     double TAU[cpdim-1];
     LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, p.matrix, cpdim, p.D, p.E, TAU);
+
+    double V[cpdim];
+    for(int j=cpdim-1;j>0;j--){
+      for(int k=0;k<cpdim;k++) {
+        if (k < j-1){
+          V[k] = curr_matrix[k*cpdim+j];
+        } else if(k == j-1) {
+          V[k] = 1;
+        } else {
+          V[k] = 0;
+        }
+      }
+      double EYE[cplen];
+      eye(j+1, EYE);
+      double *Q_curr = calloc(cplen, sizeof(double));
+      cblas_dger(CblasRowMajor, cpdim, cpdim, -TAU[j], V, 1, V, 1, Q_curr, cpdim );
+      cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, cpdim, cpdim, cpdim, 1.0, p.Q, cpdim, Q_curr, cpdim, 1.0, p.Q, cpdim);
+      free(Q_curr);
+    }
+    
     problems[i] = p;
     
-  }
+  ;}
   printf("Read %d eigenproblems into the memory.\n", n_problems);
 
   fclose(f);
@@ -87,12 +132,6 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
   }
 }
 
-void print_array(int len, double *array) {
-  for(int i=0; i<len;i++){
-    printf("%f ", array[i]);
-  }
-  printf("\n");
-}
 
 int main(void) {
   struct Eigenproblem problems[N_PROBLEMS];
@@ -100,38 +139,37 @@ int main(void) {
   
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
-    double *Z = malloc(sizeof(double)*p.p_size*p.p_size);
-    
-    /*
+    double *Z = p.Q;
     // DSTEQR
-    //lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, NULL, p.p_size); 
-    */
-
+    lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
+    /*
     int VL, VU, IL, IU;
     lapack_int M[p.p_size];
     double W[p.p_size];
     double ABSTOL = 0.001;
     int ISUPPZ[p.p_size*2];
     
-    /*
     // DSTEVX
     int *ifail;
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, p.p_size, p.D, p.E, VL, VU, IL, IU, ABSTOL, M, W, Z, p.p_size, ifail);
     */
-    
+   
+    /* 
     //DSTEMR
     lapack_logical *tryrac = malloc(sizeof(lapack_logical));
     lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, RANGE, p.p_size, p.D, p.E, VL, VU, IL, IU, M, W, Z, p.p_size, p.p_size, ISUPPZ, tryrac); 
     
     printf("INFO : %d; ", info); 
     print_array(p.p_size, W);
-  
-    free(Z);
+    
+    free(tryrac);
+    */
+    
+    printf("INFO : %d;\n", info); 
   }
-  
+
   for(int i=0;i<N_PROBLEMS;i++) {
     free(problems[i].D);
   }
-  //free(Z);
   return 0;
 }
