@@ -30,13 +30,13 @@ struct Eigenproblem {
 void construct_eigenproblem(struct Eigenproblem *p, int size, double *eigenvalues, double *D, double *E, double *Q) {
   p->eigenvalues = malloc(sizeof(double)*size);
   p->D = malloc(sizeof(double)*size);
-  p->E = malloc(sizeof(double)*size);
+  p->E = malloc(sizeof(double)*(size-1));
   p->Q = malloc(sizeof(double)*size*size);
 
   p->p_size = size;
   memcpy(p->eigenvalues, eigenvalues, sizeof(double)*size);
   memcpy(p->D, D, sizeof(double)*size);
-  memcpy(p->E, E, sizeof(double)*size);
+  memcpy(p->E, E, sizeof(double)*(size-1));
   memcpy(p->Q, Q, sizeof(double)*size*size);
 }
 
@@ -111,7 +111,7 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
 
     double Q[cplen];
     double D[cpdim];
-    double E[cpdim];
+    double E[cpdim-1];
     double TAU[cpdim-1];
     double V[cpdim];
     
@@ -168,24 +168,25 @@ void test_dstevx() {
   load_problems("data.csv", problems);
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
-    lapack_int M = 0;
+    lapack_int M;
     int psize = p.p_size;
     int plen = psize*psize;
-    double E[psize];
+    double E[psize-1];
     double D[psize];
     double Z[plen];
-    memcpy(E, p.E, sizeof(double)*psize); 
+    memcpy(E, p.E, sizeof(double)*(psize-1)); 
     memcpy(D, p.D, sizeof(double)*psize); 
     memcpy(Z, p.Q, sizeof(double)*plen);
     double W[psize];
-    lapack_int ifail = 0;
-    lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, &ifail);
+    lapack_int ifail[psize];
+    lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
     printf("INFO : %d;\n", info); 
     
     destroy_eigenproblem(&p);
   }
 }
 
+// E here should be N dimensional!
 void test_dstemr() {
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -198,7 +199,7 @@ void test_dstemr() {
     double E[psize];
     double D[psize];
     double Z[plen];
-    memcpy(E, p.E, sizeof(double)*psize); 
+    memcpy(E, p.E, sizeof(double)*(psize-1)); 
     memcpy(D, p.D, sizeof(double)*psize); 
     memcpy(Z, p.Q, sizeof(double)*plen); 
     double W[psize];
@@ -214,8 +215,8 @@ void test_dstemr() {
 
 
 int main(void) {
-  //test_dsteqr();
+  test_dsteqr();
   test_dstevx(); 
-  //test_dstemr(); 
+  test_dstemr(); 
   return 0;
 }
