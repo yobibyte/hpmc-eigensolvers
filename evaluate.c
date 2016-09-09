@@ -14,8 +14,8 @@
 #define MATRIX_LAYOUT 1
 #define MODE 'V'
 #define RANGE 'A'
-#define N_PROBLEMS 500
-#define ABSTOL 0.0001
+#define N_PROBLEMS 1000
+#define ABSTOL 0.000001
 
 #define get_ticks(var) {\
       unsigned int __a, __d;\
@@ -62,19 +62,15 @@ double get_relative_accuracy(double *real_values, double *computed_values, int l
   // http://gauss.uc3m.es/web/personal_web/molera/talks/cedya05charla.pdf
   double res = 0;
   for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i])/real_values[i], i++);
-  return res/((double) len);
+  return 1.0 - res/((double) len);
 } 
 
 double get_absolute_accuracy(double *real_values, double *computed_values, int len) {
   // Returns mean absolute accuracy across all eigenvalues
   double res = 0;
   for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i]), i++) {
-    if(computed_values[i]>100){
-      printf("%d\n", i);
-      //printf("#%d %f\n", i, computed_values[i]);
-    }
   }
-  return res/((double) len);
+  return 1.0 - res/((double) len);
 }
   
 void eye(int dim, double *mat) {
