@@ -14,6 +14,13 @@
 #define RANGE 'A'
 #define N_PROBLEMS 5
 #define ABSTOL 0.0001
+
+#define get_ticks(var) {\
+      unsigned int __a, __d;\
+      asm volatile("rdtsc" : "=a" (__a), "=d" (__d));\
+      var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
+   } while(0)
+
 struct Eigenproblem {
   int p_size;
   double *eigenvalues;
