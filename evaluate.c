@@ -9,11 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DEBUG 0
+
 #define MATRIX_LAYOUT 1
 #define MODE 'V'
 #define RANGE 'A'
-#define N_PROBLEMS 5
-#define ABSTOL 0.0001
+#define N_PROBLEMS 15
+#define ABSTOL 0.00001
 
 #define get_ticks(var) {\
       unsigned int __a, __d;\
@@ -54,6 +56,22 @@ void destroy_eigenproblem(struct Eigenproblem *p) {
   free(p->Q);
 }
 
+double get_relative_accuracy(double *real_values, double *computed_values, int len) {
+  // Returns mean relative accuracy across all eigenvalues
+  // notes on relative accuracy for eigensolvers:
+  // http://gauss.uc3m.es/web/personal_web/molera/talks/cedya05charla.pdf
+  double res = 0;
+  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i])/real_values[i], i++);
+  return res/((double) len);
+} 
+
+double get_absolute_accuracy(double *real_values, double *computed_values, int len) {
+  // Returns mean absolute accuracy across all eigenvalues
+  double res = 0;
+  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i]), i++);
+  return res/((double) len);
+}
+  
 void eye(int dim, double *mat) {
   for(int i=0;i<dim;i++){
     for(int j=0;j<dim;j++){
@@ -94,7 +112,9 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     eigenvalues_str = strtok_r(NULL,      ";", &end_str);
     curr_matrix_str = strtok_r(NULL,      ";", &end_str); 
     
-    printf("Reading eigenproblem #%d with dim %s\n", i, curr_buf);
+    if(DEBUG) {
+      printf("Reading eigenproblem #%d with dim %s\n", i, curr_buf);
+    }
     
     int cpdim;
     sscanf(curr_buf, "%d", &cpdim); 
@@ -155,24 +175,39 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
   }
 }
 
+double get_mean(double *array, int len) {
+  double res=0.0;
+  for(int i=0; i<len; res+=array[i],i++);
+  return res/((double) len);
+}
 
 void test_dsteqr() {
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
   load_problems("data.csv", problems);
+
+  double accuracies[N_PROBLEMS];
+
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
     lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, p.Q, p.p_size); 
-    printf("INFO : %d;\n", info); 
     
+    if(info > 0) {
+      printf("Eigenproblem #%d was not solved correctly!\n", i);  
+    }
+   
+    accuracies[i] = get_relative_accuracy(p.D, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);
   }
+  printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
 }
 
 void test_dstevx() {
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
   load_problems("data.csv", problems);
+  
+  double accuracies[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
     lapack_int M;
@@ -187,10 +222,15 @@ void test_dstevx() {
     double W[psize];
     lapack_int ifail[psize];
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
-    printf("INFO : %d;\n", info); 
     
+    if(info > 0) {
+      printf("Eigenproblem #%d was not solved correctly!\n", i);  
+    }
+    
+    accuracies[i] = get_relative_accuracy(W, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);
   }
+  printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
 }
 
 // E here should be N dimensional!
@@ -198,6 +238,7 @@ void test_dstemr() {
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
   load_problems("data.csv", problems);
+  double accuracies[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
     lapack_int M = 0;
@@ -214,10 +255,15 @@ void test_dstemr() {
     lapack_int ISUPPZ[psize*2];
     lapack_logical tryrac = (lapack_logical) 0;
     lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, &M, W, Z, psize, psize, ISUPPZ, &tryrac); 
-    printf("INFO : %d;\n", info); 
 
+    if(info > 0) {
+      printf("Eigenproblem #%d was not solved correctly!\n", i);  
+    }
+
+    accuracies[i] = get_relative_accuracy(W, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);   
   }
+  printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
 }
 
 
