@@ -14,8 +14,8 @@
 #define MATRIX_LAYOUT 1
 #define MODE 'V'
 #define RANGE 'A'
-#define N_PROBLEMS 1000
-#define ABSTOL 0.00001
+#define N_PROBLEMS 500
+#define ABSTOL 0.0001
 
 #define get_ticks(var) {\
       unsigned int __a, __d;\
@@ -68,7 +68,12 @@ double get_relative_accuracy(double *real_values, double *computed_values, int l
 double get_absolute_accuracy(double *real_values, double *computed_values, int len) {
   // Returns mean absolute accuracy across all eigenvalues
   double res = 0;
-  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i]), i++);
+  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i]), i++) {
+    if(computed_values[i]>100){
+      printf("%d\n", i);
+      //printf("#%d %f\n", i, computed_values[i]);
+    }
+  }
   return res/((double) len);
 }
   
@@ -145,7 +150,8 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     eye(cpdim, Q);
     //print_array(N_PROBLEMS, curr_eigenvals);
     LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, curr_matrix, cpdim, D, E, TAU);
-   
+  
+
     for(int j=cpdim-1;j>0;j--){
       for(int k=0;k<cpdim;k++) {
         if (k < j-1){
@@ -192,11 +198,11 @@ void test_dsteqr() {
     struct Eigenproblem p = problems[i];
     lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, p.Q, p.p_size); 
     
-    if(info > 0) {
+    if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
     
-    accuracies[i] = get_absolute_accuracy(p.D, p.eigenvalues, N_PROBLEMS);
+    accuracies[i] = get_absolute_accuracy(p.eigenvalues, p.D, p.p_size);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
@@ -223,11 +229,11 @@ void test_dstevx() {
     lapack_int ifail[psize];
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
     
-    if(info > 0) {
+    if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
     
-    accuracies[i] = get_absolute_accuracy(W, p.eigenvalues, N_PROBLEMS);
+    accuracies[i] = get_absolute_accuracy(p.eigenvalues, W, psize);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
@@ -256,11 +262,11 @@ void test_dstemr() {
     lapack_logical tryrac = (lapack_logical) 0;
     lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, &M, W, Z, psize, psize, ISUPPZ, &tryrac); 
 
-    if(info > 0) {
+    if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
 
-    accuracies[i] = get_absolute_accuracy(W, p.eigenvalues, N_PROBLEMS);
+    accuracies[i] = get_absolute_accuracy(p.eigenvalues, W, psize);
     destroy_eigenproblem(&p);   
   }
   printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
