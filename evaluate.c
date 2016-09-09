@@ -14,7 +14,7 @@
 #define MATRIX_LAYOUT 1
 #define MODE 'V'
 #define RANGE 'A'
-#define N_PROBLEMS 15
+#define N_PROBLEMS 1000
 #define ABSTOL 0.00001
 
 #define get_ticks(var) {\
@@ -106,7 +106,7 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
 
   for(int i=0; i<n_problems;i++) {
     char *end_str = NULL;
-    
+      
     getline(&curr_line, &len, f);
     curr_buf        = strtok_r(curr_line, ";", &end_str);
     eigenvalues_str = strtok_r(NULL,      ";", &end_str);
@@ -143,7 +143,7 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     double V[cpdim];
     
     eye(cpdim, Q);
-
+    //print_array(N_PROBLEMS, curr_eigenvals);
     LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, curr_matrix, cpdim, D, E, TAU);
    
     for(int j=cpdim-1;j>0;j--){
@@ -195,8 +195,8 @@ void test_dsteqr() {
     if(info > 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
-   
-    accuracies[i] = get_relative_accuracy(p.D, p.eigenvalues, N_PROBLEMS);
+    
+    accuracies[i] = get_absolute_accuracy(p.D, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
@@ -227,7 +227,7 @@ void test_dstevx() {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
     
-    accuracies[i] = get_relative_accuracy(W, p.eigenvalues, N_PROBLEMS);
+    accuracies[i] = get_absolute_accuracy(W, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
@@ -260,7 +260,7 @@ void test_dstemr() {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
 
-    accuracies[i] = get_relative_accuracy(W, p.eigenvalues, N_PROBLEMS);
+    accuracies[i] = get_absolute_accuracy(W, p.eigenvalues, N_PROBLEMS);
     destroy_eigenproblem(&p);   
   }
   printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
