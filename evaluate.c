@@ -1,7 +1,20 @@
-// TODO read csv with maximum precision
-// TODO check for memleaks
-// TODO add computing the eigenvectors also
-// TODO properly load N_PROBLEMS
+// 5) Small eigenproblems                                                       
+// You are given thousands of small tridiaongal eigenproblems (n<60)           
+// Compare the accuracy and speed of three eigensolvers: BX+II, QR, MR3.        // Compare different matrix types:                                              // Random eigenvalues, uniform distribution (0, 1)                            
+// Uniform eigenvalue distribution (page 119 of http://arxiv.org/pdf/1401.4950v1.pdf
+// Instrument the code to count flops.                                          // Study flops vs accuracy, for different accuracy levels.                      // BX+II: DSTEVX, QR: DSTEQR, MR3: DSTEMR  
+
+// Do we need to compute eigenvectors? Or values only?
+// * identity matrix
+// count flops exactly by parsing the code? Or based on time?
+// * use papi
+// * v2
+// what do you mean by measuring accuracy? relative? absolute?
+// * 3d flps, accuracy, problem size 
+// how flops vs accuracy for different accuracy lvls? Only one func has rtol
+// * 
+// * input size 40-50 problems
+// random uniform distribution
 
 #include <cblas.h>
 #include <stdio.h>
@@ -18,7 +31,7 @@
 #define ABSTOL 0.000001
 
 #define get_ticks(var) {\
-      unsigned int __a, __d;\
+     unsigned int __a, __d;\
       asm volatile("rdtsc" : "=a" (__a), "=d" (__d));\
       var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
    } while(0)
