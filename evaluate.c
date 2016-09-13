@@ -1,8 +1,12 @@
 // 5) Small eigenproblems                                                       
 // You are given thousands of small tridiaongal eigenproblems (n<60)           
-// Compare the accuracy and speed of three eigensolvers: BX+II, QR, MR3.        // Compare different matrix types:                                              // Random eigenvalues, uniform distribution (0, 1)                            
-// Uniform eigenvalue distribution (page 119 of http://arxiv.org/pdf/1401.4950v1.pdf
-// Instrument the code to count flops.                                          // Study flops vs accuracy, for different accuracy levels.                      // BX+II: DSTEVX, QR: DSTEQR, MR3: DSTEMR  
+// Compare the accuracy and speed of three eigensolvers: BX+II, QR, MR3.
+// Compare different matrix types:
+//   * Random eigenvalues, uniform distribution (0, 1)                            
+//   * Uniform eigenvalue distribution (page 119 of http://arxiv.org/pdf/1401.4950v1.pdf
+// Instrument the code to count flops.
+// Study flops vs accuracy, for different accuracy levels.
+// BX+II: DSTEVX, QR: DSTEQR, MR3: DSTEMR  
 
 // Do we need to compute eigenvectors? Or values only?
 // * identity matrix
@@ -45,28 +49,23 @@ struct Eigenproblem {
   double *D;
   // subdiagonal after reduction to symm tridiagonal
   double *E;
-  // orthogonal matrix for solvers
-  double *Q;
 };
 
-void construct_eigenproblem(struct Eigenproblem *p, int size, double *eigenvalues, double *D, double *E, double *Q) {
+void construct_eigenproblem(struct Eigenproblem *p, int size, double *eigenvalues, double *D, double *E) {
   p->eigenvalues = malloc(sizeof(double)*size);
   p->D = malloc(sizeof(double)*size);
   p->E = malloc(sizeof(double)*(size-1));
-  p->Q = malloc(sizeof(double)*size*size);
 
   p->p_size = size;
   memcpy(p->eigenvalues, eigenvalues, sizeof(double)*size);
   memcpy(p->D, D, sizeof(double)*size);
   memcpy(p->E, E, sizeof(double)*(size-1));
-  memcpy(p->Q, Q, sizeof(double)*size*size);
 }
 
 void destroy_eigenproblem(struct Eigenproblem *p) {
   free(p->eigenvalues);
   free(p->D);
   free(p->E);
-  free(p->Q);
 }
 
 double get_relative_accuracy(double *real_values, double *computed_values, int len) {
@@ -150,36 +149,14 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
       sscanf(curr_buf, "%lf", &curr_matrix[j]);
     }    
 
-    double Q[cplen];
     double D[cpdim];
     double E[cpdim-1];
     double TAU[cpdim-1];
     double V[cpdim];
     
-    eye(cpdim, Q);
     //print_array(N_PROBLEMS, curr_eigenvals);
     LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, curr_matrix, cpdim, D, E, TAU);
-  
-
-    for(int j=cpdim-1;j>0;j--){
-      for(int k=0;k<cpdim;k++) {
-        if (k < j-1){
-          V[k] = curr_matrix[k*cpdim+j];
-        } else if(k == j-1) {
-          V[k] = 1;
-        } else {
-          V[k] = 0;
-        }
-      }
-      double EYE[cplen];
-      eye(j+1, EYE);
-      double *Q_curr = calloc(cplen, sizeof(double));
-      cblas_dger(CblasRowMajor, cpdim, cpdim, -TAU[j], V, 1, V, 1, Q_curr, cpdim );
-      cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, cpdim, cpdim, cpdim, 1.0, Q, cpdim, Q_curr, cpdim, 1.0, Q, cpdim);
-      free(Q_curr);
-    }
-   
-    construct_eigenproblem(&problems[i], cpdim, curr_eigenvals, D, E, Q);
+    construct_eigenproblem(&problems[i], cpdim, curr_eigenvals, D, E);
     
   }
   printf("Read %d eigenproblems into the memory.\n", n_problems);
@@ -205,7 +182,9 @@ void test_dsteqr() {
 
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
-    lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, p.Q, p.p_size); 
+    double Z[p.p_size*p.p_size];
+    eye(p.p_size, Z);
+    lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
     
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
@@ -233,7 +212,6 @@ void test_dstevx() {
     double Z[plen];
     memcpy(E, p.E, sizeof(double)*(psize-1)); 
     memcpy(D, p.D, sizeof(double)*psize); 
-    memcpy(Z, p.Q, sizeof(double)*plen);
     double W[psize];
     lapack_int ifail[psize];
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
@@ -264,7 +242,6 @@ void test_dstemr() {
     double Z[plen];
     memcpy(E, p.E, sizeof(double)*(psize-1)); 
     memcpy(D, p.D, sizeof(double)*psize); 
-    memcpy(Z, p.Q, sizeof(double)*plen); 
     double W[psize];
     int ifail = 0;
     lapack_int ISUPPZ[psize*2];
