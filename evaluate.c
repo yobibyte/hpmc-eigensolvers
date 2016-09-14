@@ -4,22 +4,19 @@
 // Compare different matrix types:
 //   * Random eigenvalues, uniform distribution (0, 1)                            
 //   * Uniform eigenvalue distribution (page 119 of http://arxiv.org/pdf/1401.4950v1.pdf
-// Instrument the code to count flops.
-// Study flops vs accuracy, for different accuracy levels.
+// Instrument the code to count flops. (use PAPI or v2 by Intel)
+// Study flops vs accuracy, for different accuracy levels. (use dlarrv for emr)
 // BX+II: DSTEVX, QR: DSTEQR, MR3: DSTEMR  
 
-// Do we need to compute eigenvectors? Or values only?
-// * identity matrix
-// count flops exactly by parsing the code? Or based on time?
-// * use papi
-// * v2
+// compile with -O0?
 // what do you mean by measuring accuracy? relative? absolute?
 // * 3d flps, accuracy, problem size 
 // how flops vs accuracy for different accuracy lvls? Only one func has rtol
-// * 
 // * input size 40-50 problems
-// random uniform distribution
 
+// example code from here: https://icl.cs.utk.edu/projects/papi/wiki/PAPITopics:Getting_Started#The_Source_Code
+
+#include <papi.h>
 #include <cblas.h>
 #include <stdio.h>
 #include <lapacke.h>
@@ -68,15 +65,6 @@ void destroy_eigenproblem(struct Eigenproblem *p) {
   free(p->E);
 }
 
-double get_relative_accuracy(double *real_values, double *computed_values, int len) {
-  // Returns mean relative accuracy across all eigenvalues
-  // notes on relative accuracy for eigensolvers:
-  // http://gauss.uc3m.es/web/personal_web/molera/talks/cedya05charla.pdf
-  double res = 0;
-  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i])/real_values[i], i++);
-  return 1.0 - res/((double) len);
-} 
-
 double get_absolute_accuracy(double *real_values, double *computed_values, int len) {
   // Returns mean absolute accuracy across all eigenvalues
   double res = 0;
@@ -84,7 +72,11 @@ double get_absolute_accuracy(double *real_values, double *computed_values, int l
   }
   return 1.0 - res/((double) len);
 }
-  
+ 
+int count_flops(void *function){
+
+}
+
 void eye(int dim, double *mat) {
   for(int i=0;i<dim;i++){
     for(int j=0;j<dim;j++){
@@ -173,19 +165,58 @@ double get_mean(double *array, int len) {
   return res/((double) len);
 }
 
+struct Timing {
+  float real_time, proc_time, mflops;
+  long long flpins;
+};
+
+static void test_fail(char *file, int line, char *call, int retval){
+    printf("%s\tFAILED\nLine # %d\n", file, line);
+    if ( retval == PAPI_ESYS ) {
+        char buf[128];
+        memset( buf, '\0', sizeof(buf) );
+        sprintf(buf, "System error in %s:", call );
+        perror(buf);
+    }
+    else if ( retval > 0 ) {
+        printf("Error calculating: %s\n", call );
+    }
+    else {
+        printf("Error in %s: %s\n", call, PAPI_strerror(retval) );
+    }
+    printf("\n");
+    exit(1);
+}
+
+void call_PAPI(struct Timing *t){
+  int retval;
+  if(retval=PAPI_flops(&t->real_time, &t->proc_time, &t->flpins, &t->mflops)<PAPI_OK){
+    test_fail(__FILE__, __LINE__, "PAPI_flops", retval);  
+  }
+}
+
 void test_dsteqr() {
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
   load_problems("data.csv", problems);
 
   double accuracies[N_PROBLEMS];
+  long long flops[N_PROBLEMS];
 
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
     double Z[p.p_size*p.p_size];
     eye(p.p_size, Z);
+   
+    //START TIMING 
+    struct Timing t;
+    call_PAPI(&t); 
     lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
-    
+    call_PAPI(&t);
+    flops[i] = t.flpins;
+    PAPI_shutdown();
+    //END TIMING
+
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
@@ -193,6 +224,12 @@ void test_dsteqr() {
     accuracies[i] = get_absolute_accuracy(p.eigenvalues, p.D, p.p_size);
     destroy_eigenproblem(&p);
   }
+  for(int i=0; i<N_PROBLEMS;i++){
+    printf("%lld\n", flops[i]);
+  }
+  //printf("Real_time:\t%f\nProc_time:\t%f\nTotal flpins:\t%lld\nMFLOPS:\t\t%f\n",
+  //t->real_time, t->proc_time, t->flpins, t->mflops);
+  
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
 }
 
@@ -223,7 +260,7 @@ void test_dstevx() {
     accuracies[i] = get_absolute_accuracy(p.eigenvalues, W, psize);
     destroy_eigenproblem(&p);
   }
-  printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  //printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
 }
 
 // E here should be N dimensional!
@@ -261,7 +298,7 @@ void test_dstemr() {
 
 int main(void) {
   test_dsteqr();
-  test_dstevx(); 
-  test_dstemr(); 
+  //test_dstevx(); 
+  //test_dstemr(); 
   return 0;
 }
