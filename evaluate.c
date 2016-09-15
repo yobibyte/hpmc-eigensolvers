@@ -34,11 +34,8 @@
 #define N_PROBLEMS 1000
 #define ABSTOL 0.001
 
-#define get_ticks(var) {\
-     unsigned int __a, __d;\
-      asm volatile("rdtsc" : "=a" (__a), "=d" (__d));\
-      var = ((unsigned long) __a) | (((unsigned long) __d) << 32); \
-   } while(0)
+#define DATA_PREFIX "data/"
+#define RES_PREFIX "res/"
 
 struct Eigenproblem {
   int p_size;
@@ -109,7 +106,7 @@ void print_array(int len, double *array) {
   printf("\n");
 }
 
-void compile_accuracy_speed_flops(double *accuracy, double *speed, double *flops) {
+void compile_accuracy_speed_flops(double *accuracy, double *speed, double *flops, double **res) {
   //
 }
 
@@ -123,7 +120,9 @@ void write_results(char* filename, char** results, int nb_res){
 }
 
 void load_problems(char *filename, struct Eigenproblem *problems) {
-  FILE *f = fopen(filename, "r");
+  char path[256];
+  snprintf(path, sizeof path, "%s%s", DATA_PREFIX, filename);
+  FILE *f = fopen(path, "r");
   char *curr_line;
   size_t len = 0;
   int n_problems;
@@ -228,6 +227,7 @@ void test_dsteqr(char *filename) {
   load_problems(filename, problems);
 
   double accuracies[N_PROBLEMS];
+  double real_time[N_PROBLEMS];
   long long flops[N_PROBLEMS];
 
   for (int i=0;i<N_PROBLEMS;i++) {
@@ -241,6 +241,7 @@ void test_dsteqr(char *filename) {
     lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
     call_PAPI(&t);
     flops[i] = t.flpins;
+    real_time[i] = t.real_time;
     PAPI_shutdown();
     //END TIMING
 
@@ -257,6 +258,9 @@ void test_dsteqr(char *filename) {
   //  printf("%lld\n", flops[i]);
   //}
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  //char **result;//TODO init somehow
+  //compile_accuracy_speed_flops(accuracies, real_time, flops, result);
+  //write('res/' + filename , result, N_PROBLEMS);
   printf("DONE.\n");
 }
 
@@ -267,6 +271,7 @@ void test_dstevx(char *filename) {
   load_problems(filename, problems);
   
   double accuracies[N_PROBLEMS];
+  double real_time[N_PROBLEMS];
   double flops[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
@@ -287,6 +292,7 @@ void test_dstevx(char *filename) {
     lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
     call_PAPI(&t);
     flops[i] = t.flpins;
+    real_time[i] = t.real_time;
     PAPI_shutdown();
     //END TIMING
 
@@ -309,6 +315,7 @@ void test_dstemr(char *filename) {
   struct Eigenproblem problems[N_PROBLEMS];
   load_problems(filename, problems);
   double accuracies[N_PROBLEMS];
+  double real_time[N_PROBLEMS];
   long long flops[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
@@ -331,6 +338,7 @@ void test_dstemr(char *filename) {
     lapack_int info = LAPACKE_dstemr(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, &M, W, Z, psize, psize, ISUPPZ, &tryrac); 
     call_PAPI(&t);
     flops[i] = t.flpins;
+    real_time[i] = t.real_time;
     PAPI_shutdown();
     //END TIMING
 
@@ -338,7 +346,6 @@ void test_dstemr(char *filename) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
 
-    //accuracies[i] = get_absolute_accuracy(p.eigenvalues, W, psize);
     accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);   
   }
@@ -348,7 +355,6 @@ void test_dstemr(char *filename) {
 
 
 int main(int argc, char **argv) {
-  
   if (strcmp(argv[1], "speed_vs_accuracy") == 0) {
     test_dsteqr(argv[2]);
     test_dstevx(argv[2]); 
