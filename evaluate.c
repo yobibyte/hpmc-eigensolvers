@@ -113,9 +113,9 @@ void compile_accuracy_speed_flops(double *accuracy, double *speed, long long *fl
 }
 
 
-void write_results(char* filename, char results[][256], int nb_res, char *method){
+void write_results(char* filename, char results[][256], int nb_res, char *exp_type, char *method){
   char path[256];
-  snprintf(path, sizeof path, "%s%s_%s", RES_PREFIX, method, filename);
+  snprintf(path, sizeof path, "%s%s/%s_%s", RES_PREFIX, exp_type, method, filename);
   FILE *f = fopen(path, "w");
   for(int i=0;i<nb_res;i++){
     fprintf(f, "%s", results[i]);
@@ -224,7 +224,7 @@ void call_PAPI(struct Timing *t){
   }
 }
 
-void test_dsteqr(char *filename) {
+void test_dsteqr(char *filename, char *exp_type) {
   printf("Performing tests for DSTEQR\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -258,11 +258,11 @@ void test_dsteqr(char *filename) {
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, "dsteqr");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dsteqr");
   printf("DONE.\n");
 }
 
-void test_dstevx(char *filename) {
+void test_dstevx(char *filename, char *exp_type) {
   printf("Performing tests for DSTEVX\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -305,12 +305,12 @@ void test_dstevx(char *filename) {
   printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, "dstevx");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dstevx");
   printf("DONE.\n");
 }
 
 // E here should be N dimensional!
-void test_dstemr(char *filename) {
+void test_dstemr(char *filename, char *exp_type) {
   printf("Performing tests for DSTEMR\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -353,21 +353,21 @@ void test_dstemr(char *filename) {
   printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, "dstemr");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dstemr");
   printf("DONE.\n");
 }
 
 
 int main(int argc, char **argv) {
   if (strcmp(argv[1], "speed_vs_accuracy") == 0) {
-    test_dsteqr(argv[2]);
-    test_dstevx(argv[2]); 
-    test_dstemr(argv[2]); 
+    test_dsteqr(argv[2], "speed_vs_accuracy");
+    test_dstevx(argv[2], "speed_vs_accuracy");
+    test_dstemr(argv[2], "speed_vs_accuracy");
   } else if(strcmp((argv[1]), "flops_given_accuracy") == 0) {
     for(int acc = 0.1; acc > 0.01; acc/10){
-      test_dsteqr(argv[2]);
-      test_dstevx(argv[2]); 
-      test_dstemr(argv[2]); 
+      test_dsteqr(argv[2], "flops_given_accuracy");
+      test_dstevx(argv[2], "flops_given_accuracy");
+      test_dstemr(argv[2], "flops_given_accuracy");
     } 
   } else {
     printf("Unknown test type parameter\n");
