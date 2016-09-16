@@ -106,15 +106,19 @@ void print_array(int len, double *array) {
   printf("\n");
 }
 
-void compile_accuracy_speed_flops(double *accuracy, double *speed, double *flops, double **res) {
-  //
+void compile_accuracy_speed_flops(double *accuracy, double *speed, long long *flops, char res[][256]) {
+  for (int i = 0; i< N_PROBLEMS; i++) {
+    snprintf(res[i], sizeof res[i], "%lf;%lf;%lld\n", accuracy[i], speed[i], flops[i]);
+  }
 }
 
 
-void write_results(char* filename, char** results, int nb_res){
-  FILE *f = fopen(filename, "w");
+void write_results(char* filename, char results[][256], int nb_res){
+  char path[256];
+  snprintf(path, sizeof path, "%s%s", RES_PREFIX, filename);
+  FILE *f = fopen(path, "w");
   for(int i=0;i<nb_res;i++){
-    fprintf (f, "%s", results[i]);
+    fprintf(f, "%s", results[i]);
   }
   fclose(f);
 }
@@ -254,13 +258,10 @@ void test_dsteqr(char *filename) {
     //accuracies[i] = get_absolute_accuracy(p.eigenvalues, p.D, p.p_size);
     destroy_eigenproblem(&p);
   }
-  //for(int i=0; i<N_PROBLEMS;i++){
-  //  printf("%lld\n", flops[i]);
-  //}
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
-  //char **result;//TODO init somehow
-  //compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  //write('res/' + filename , result, N_PROBLEMS);
+  char result[N_PROBLEMS][256];
+  compile_accuracy_speed_flops(accuracies, real_time, flops, result);
+  write_results(filename , result, N_PROBLEMS);
   printf("DONE.\n");
 }
 
