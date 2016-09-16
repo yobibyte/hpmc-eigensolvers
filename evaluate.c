@@ -113,9 +113,9 @@ void compile_accuracy_speed_flops(double *accuracy, double *speed, long long *fl
 }
 
 
-void write_results(char* filename, char results[][256], int nb_res){
+void write_results(char* filename, char results[][256], int nb_res, char *method){
   char path[256];
-  snprintf(path, sizeof path, "%s%s", RES_PREFIX, filename);
+  snprintf(path, sizeof path, "%s%s_%s", RES_PREFIX, method, filename);
   FILE *f = fopen(path, "w");
   for(int i=0;i<nb_res;i++){
     fprintf(f, "%s", results[i]);
@@ -252,16 +252,13 @@ void test_dsteqr(char *filename) {
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
-   
     accuracies[i] = get_accuracy(p.p_size, Z);
-     
-    //accuracies[i] = get_absolute_accuracy(p.eigenvalues, p.D, p.p_size);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS);
+  write_results(filename , result, N_PROBLEMS, "dsteqr");
   printf("DONE.\n");
 }
 
@@ -273,7 +270,7 @@ void test_dstevx(char *filename) {
   
   double accuracies[N_PROBLEMS];
   double real_time[N_PROBLEMS];
-  double flops[N_PROBLEMS];
+  long long flops[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
     struct Eigenproblem p = problems[i];
     lapack_int M;
@@ -306,6 +303,9 @@ void test_dstevx(char *filename) {
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  char result[N_PROBLEMS][256];
+  compile_accuracy_speed_flops(accuracies, real_time, flops, result);
+  write_results(filename , result, N_PROBLEMS, "dstevx");
   printf("DONE.\n");
 }
 
@@ -351,6 +351,9 @@ void test_dstemr(char *filename) {
     destroy_eigenproblem(&p);   
   }
   printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  char result[N_PROBLEMS][256];
+  compile_accuracy_speed_flops(accuracies, real_time, flops, result);
+  write_results(filename , result, N_PROBLEMS, "dstemr");
   printf("DONE.\n");
 }
 
