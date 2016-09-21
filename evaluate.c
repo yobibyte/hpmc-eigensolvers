@@ -13,6 +13,7 @@
 // TODO 3d flps, accuracy, problem size                                           #
 // TODO how flops vs accuracy for different accuracy lvls? Only one func has rtol #
 // TODO compile with -O0?                                                         # 
+// TODO play with TRYRAC for dstemr                                               #
 // ################################################################################
 //
 //
@@ -32,7 +33,7 @@
 #define MODE 'V'
 #define RANGE 'A'
 #define N_PROBLEMS 1000
-#define ABSTOL 0.001
+#define ABSTOL 0.00001
 
 #define DATA_PREFIX "data/"
 #define RES_PREFIX "res/"
@@ -113,9 +114,9 @@ void compile_accuracy_speed_flops(double *accuracy, double *speed, long long *fl
 }
 
 
-void write_results(char* filename, char results[][256], int nb_res, char *exp_type, char *method){
+void write_results(char* filename, char results[][256], int nb_res, char *exp_type, char *method, char *accuracy_type){
   char path[256];
-  snprintf(path, sizeof path, "%s%s/%s_%s", RES_PREFIX, exp_type, method, filename);
+  snprintf(path, sizeof path, "%s%s/%s_%s_%s", RES_PREFIX, exp_type, method, accuracy_type, filename);
   FILE *f = fopen(path, "w");
   for(int i=0;i<nb_res;i++){
     fprintf(f, "%s", results[i]);
@@ -224,7 +225,7 @@ void call_PAPI(struct Timing *t){
   }
 }
 
-void test_dsteqr(char *filename, char *exp_type) {
+void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
   printf("Performing tests for DSTEQR\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -258,11 +259,11 @@ void test_dsteqr(char *filename, char *exp_type) {
   printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, exp_type, "dsteqr");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dsteqr", accuracy_type);
   printf("DONE.\n");
 }
 
-void test_dstevx(char *filename, char *exp_type) {
+void test_dstevx(char *filename, char *exp_type, double tolerance, char *accuracy_type) {
   printf("Performing tests for DSTEVX\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -287,7 +288,7 @@ void test_dstevx(char *filename, char *exp_type) {
     //START TIMING
     struct Timing t;
     call_PAPI(&t); 
-    lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, ABSTOL, &M, W, Z, psize, ifail);
+    lapack_int info = LAPACKE_dstevx(LAPACK_ROW_MAJOR, MODE, RANGE, psize, D, E, VL, VU, IL, IU, tolerance, &M, W, Z, psize, ifail);
     call_PAPI(&t);
     flops[i] = t.flpins;
     real_time[i] = t.real_time;
@@ -305,12 +306,12 @@ void test_dstevx(char *filename, char *exp_type) {
   printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, exp_type, "dstevx");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dstevx", "");
   printf("DONE.\n");
 }
 
 // E here should be N dimensional!
-void test_dstemr(char *filename, char *exp_type) {
+void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *accuracy_type) {
   printf("Performing tests for DSTEMR\n");
   int VL, VU, IL, IU;
   struct Eigenproblem problems[N_PROBLEMS];
@@ -331,7 +332,6 @@ void test_dstemr(char *filename, char *exp_type) {
     double W[psize];
     int ifail = 0;
     lapack_int ISUPPZ[psize*2];
-    lapack_logical tryrac = (lapack_logical) 0;
     
     //START TIMING 
     struct Timing t;
@@ -353,22 +353,27 @@ void test_dstemr(char *filename, char *exp_type) {
   printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, exp_type, "dstemr");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dstemr", accuracy_type);
   printf("DONE.\n");
 }
 
 
 int main(int argc, char **argv) {
+  char path[256];
   if (strcmp(argv[1], "speed_vs_accuracy") == 0) {
-    test_dsteqr(argv[2], "speed_vs_accuracy");
-    test_dstevx(argv[2], "speed_vs_accuracy");
-    test_dstemr(argv[2], "speed_vs_accuracy");
+    test_dsteqr(argv[2], "speed_vs_accuracy", "");
+    test_dstevx(argv[2], "speed_vs_accuracy", ABSTOL, "");
+    test_dstemr(argv[2], "speed_vs_accuracy", (lapack_logical) 0, "");
   } else if(strcmp((argv[1]), "flops_given_accuracy") == 0) {
-    for(int acc = 0.1; acc > 0.01; acc/10){
-      test_dsteqr(argv[2], "flops_given_accuracy");
-      test_dstevx(argv[2], "flops_given_accuracy");
-      test_dstemr(argv[2], "flops_given_accuracy");
-    } 
+    for(int i = 1; i < 5; i++){
+      // NO TEST FOR DSTEQR since it has no nolerance parameter
+      char accstr[32];
+      snprintf(accstr, sizeof(accstr), "%f", 1/(10*i));
+      test_dstevx(argv[2], "flops_given_accuracy", 1/(10*i), accstr);
+    }
+    //DSTEMR test using tryrac: TRUE if high accuracy, FALSE otherwise
+    test_dstemr(argv[2], "flops_given_accuracy", (lapack_logical) 0, "low");
+    test_dstemr(argv[2], "flops_given_accuracy", (lapack_logical) 1, "high");
   } else {
     printf("Unknown test type parameter\n");
   }
