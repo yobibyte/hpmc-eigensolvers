@@ -26,6 +26,7 @@
 #include <lapacke.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define DEBUG 0
 
@@ -33,7 +34,7 @@
 #define MODE 'V'
 #define RANGE 'A'
 #define N_PROBLEMS 1000
-#define ABSTOL 0.00001
+#define ABSTOL 0.001
 
 #define DATA_PREFIX "data/"
 #define RES_PREFIX "res/"
@@ -66,14 +67,6 @@ void destroy_eigenproblem(struct Eigenproblem *p) {
   free(p->E);
 }
 
-double get_absolute_accuracy(double *real_values, double *computed_values, int len) {
-  // Returns mean absolute accuracy across all eigenvalues
-  double res = 0;
-  for(int i=0; i<len;res+=abs(computed_values[i]-real_values[i]), i++) {
-  }
-  return 1.0 - res/((double) len);
-}
-
 void eye(int dim, double *mat) {
   for(int i=0;i<dim;i++){
     for(int j=0;j<dim;j++){
@@ -86,27 +79,28 @@ void eye(int dim, double *mat) {
   }
 }
 
+void print_array(int len, double *array) {
+  for(int i=0; i<len;i++){
+    printf("%lf ", array[i]);
+  }
+  printf("\n");
+}
+
+
 double get_accuracy(int dim, double *V){
   // |V'V-I|
   double res[dim*dim];
   eye(dim, res);
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans, dim, dim, dim, 1.0, V, dim, V, dim, -1.0, res, dim);
-  int max = -1;
+  double max = -1;
   for(int i=0;i<dim*dim;i++) {
-    if (abs(res[i]) > max){
-      max = abs(res[i]);
+    if (fabs(res[i]) > max){
+      max = fabs(res[i]);
     }
   }
   return max;
 }
  
-void print_array(int len, double *array) {
-  for(int i=0; i<len;i++){
-    printf("%f ", array[i]);
-  }
-  printf("\n");
-}
-
 void compile_accuracy_speed_flops(double *accuracy, double *speed, long long *flops, char res[][256]) {
   for (int i = 0; i< N_PROBLEMS; i++) {
     snprintf(res[i], sizeof res[i], "%lf;%lf;%lld\n", accuracy[i], speed[i], flops[i]);
@@ -243,7 +237,7 @@ void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
     //START TIMING 
     struct Timing t;
     call_PAPI(&t); 
-    lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, MODE, p.p_size, p.D, p.E, Z, p.p_size); 
+    lapack_int info = LAPACKE_dsteqr(LAPACK_ROW_MAJOR, 'I', p.p_size, p.D, p.E, Z, p.p_size); 
     call_PAPI(&t);
     flops[i] = t.flpins;
     real_time[i] = t.real_time;
@@ -256,7 +250,7 @@ void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
     accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);
   }
-  printf("Mean accuracy of DSTEQR is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  printf("Mean accuracy of DSTEQR is %lf\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
   write_results(filename , result, N_PROBLEMS, exp_type, "dsteqr", accuracy_type);
@@ -298,15 +292,14 @@ void test_dstevx(char *filename, char *exp_type, double tolerance, char *accurac
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
     }
-    
-    //accuracies[i] = get_absolute_accuracy(p.eigenvalues, W, psize);
+
     accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);
   }
-  printf("Mean accuracy of DSTEVX is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  printf("Mean accuracy of DSTEVX is %lf\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
-  write_results(filename , result, N_PROBLEMS, exp_type, "dstevx", "");
+  write_results(filename , result, N_PROBLEMS, exp_type, "dstevx", accuracy_type);
   printf("DONE.\n");
 }
 
@@ -350,7 +343,7 @@ void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *ac
     accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);   
   }
-  printf("Mean accuracy of DSTEMR is %f\n", get_mean(accuracies, N_PROBLEMS));    
+  printf("Mean accuracy of DSTEMR is %.20lf\n", get_mean(accuracies, N_PROBLEMS));    
   char result[N_PROBLEMS][256];
   compile_accuracy_speed_flops(accuracies, real_time, flops, result);
   write_results(filename , result, N_PROBLEMS, exp_type, "dstemr", accuracy_type);
@@ -368,8 +361,8 @@ int main(int argc, char **argv) {
     for(int i = 1; i < 5; i++){
       // NO TEST FOR DSTEQR since it has no nolerance parameter
       char accstr[32];
-      snprintf(accstr, sizeof(accstr), "%f", 1/(10*i));
-      test_dstevx(argv[2], "flops_given_accuracy", 1/(10*i), accstr);
+      snprintf(accstr, sizeof(accstr), "%f", 1.0/pow(10.0, i));
+      test_dstevx(argv[2], "flops_given_accuracy", 1.0/pow(10.0,i), accstr);
     }
     //DSTEMR test using tryrac: TRUE if high accuracy, FALSE otherwise
     test_dstemr(argv[2], "flops_given_accuracy", (lapack_logical) 0, "low");
