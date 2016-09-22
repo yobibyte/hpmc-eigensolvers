@@ -353,20 +353,20 @@ void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *ac
 
 int main(int argc, char **argv) {
   char path[256];
-  if (strcmp(argv[1], "speed_vs_accuracy") == 0) {
-    test_dsteqr(argv[2], "speed_vs_accuracy", "");
-    test_dstevx(argv[2], "speed_vs_accuracy", ABSTOL, "");
-    test_dstemr(argv[2], "speed_vs_accuracy", (lapack_logical) 0, "");
-  } else if(strcmp((argv[1]), "flops_given_accuracy") == 0) {
+  if (strcmp(argv[1], "speed-vs-accuracy") == 0) {
+    test_dsteqr(argv[2], "speed-vs-accuracy", "");
+    test_dstevx(argv[2], "speed-vs-accuracy", ABSTOL, "");
+    test_dstemr(argv[2], "speed-vs-accuracy", (lapack_logical) 0, "");
+  } else if(strcmp((argv[1]), "flops-given-accuracy") == 0) {
     for(int i = 1; i < 5; i++){
       // NO TEST FOR DSTEQR since it has no nolerance parameter
       char accstr[32];
       snprintf(accstr, sizeof(accstr), "%f", 1.0/pow(10.0, i));
-      test_dstevx(argv[2], "flops_given_accuracy", 1.0/pow(10.0,i), accstr);
+      test_dstevx(argv[2], "flops-given-accuracy", 1.0/pow(10.0,i), accstr);
     }
     //DSTEMR test using tryrac: TRUE if high accuracy, FALSE otherwise
-    test_dstemr(argv[2], "flops_given_accuracy", (lapack_logical) 0, "low");
-    test_dstemr(argv[2], "flops_given_accuracy", (lapack_logical) 1, "high");
+    test_dstemr(argv[2], "flops-given-accuracy", (lapack_logical) 0, "low");
+    test_dstemr(argv[2], "flops-given-accuracy", (lapack_logical) 1, "high");
   } else {
     printf("Unknown test type parameter\n");
   }
