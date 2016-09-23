@@ -14,6 +14,7 @@
 // TODO how flops vs accuracy for different accuracy lvls? Only one func has rtol #
 // TODO compile with -O0?                                                         # 
 // TODO play with TRYRAC for dstemr                                               #
+// TODO process correctly if we fail to solve                                     #
 // ################################################################################
 //
 //
@@ -38,6 +39,8 @@
 
 #define DATA_PREFIX "data/"
 #define RES_PREFIX "res/"
+
+#define L3_SIZE 4096*1024 // run lscpu to know
 
 struct Eigenproblem {
   int p_size;
@@ -230,6 +233,13 @@ void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
   long long flops[N_PROBLEMS];
 
   for (int i=0;i<N_PROBLEMS;i++) {
+    //garbage initialization
+    int n_elem = L3_SIZE/sizeof(double);
+    double garbage[n_elem];
+    for(int g=0; g<n_elem;g++){
+      garbage[g]+=0.3;
+    }
+
     struct Eigenproblem p = problems[i];
     double Z[p.p_size*p.p_size];
     eye(p.p_size, Z);
@@ -244,10 +254,11 @@ void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
     PAPI_shutdown();
     //END TIMING
 
+    accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
+      accuracies[i] = accuracies[i-1];
     }
-    accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEQR is %lf\n", get_mean(accuracies, N_PROBLEMS));    
@@ -267,6 +278,14 @@ void test_dstevx(char *filename, char *exp_type, double tolerance, char *accurac
   double real_time[N_PROBLEMS];
   long long flops[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
+    //garbage initialization
+    int n_elem = L3_SIZE/sizeof(double);
+    double garbage[n_elem];
+    for(int g=0; g<n_elem;g++){
+      garbage[g]+=0.3;
+    }
+    
+
     struct Eigenproblem p = problems[i];
     lapack_int M;
     int psize = p.p_size;
@@ -289,11 +308,12 @@ void test_dstevx(char *filename, char *exp_type, double tolerance, char *accurac
     PAPI_shutdown();
     //END TIMING
 
+    accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
+      accuracies[i] = accuracies[i-1];
     }
 
-    accuracies[i] = get_accuracy(p.p_size, Z);
     destroy_eigenproblem(&p);
   }
   printf("Mean accuracy of DSTEVX is %lf\n", get_mean(accuracies, N_PROBLEMS));    
@@ -313,6 +333,13 @@ void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *ac
   double real_time[N_PROBLEMS];
   long long flops[N_PROBLEMS];
   for (int i=0;i<N_PROBLEMS;i++) {
+    //garbage initialization
+    int n_elem = L3_SIZE/sizeof(double);
+    double garbage[n_elem];
+    for(int g=0; g<n_elem;g++){
+      garbage[g]+=0.3;
+    }
+    
     struct Eigenproblem p = problems[i];
     lapack_int M = 0;
     int psize = p.p_size;
@@ -336,8 +363,10 @@ void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *ac
     PAPI_shutdown();
     //END TIMING
 
+    accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
+      accuracies[i] = accuracies[i-1];
     }
 
     accuracies[i] = get_accuracy(p.p_size, Z);
