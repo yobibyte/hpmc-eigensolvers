@@ -17,7 +17,7 @@
 The general idea is to iteratively apply QR factorization to the matrix, then apply QR factorization for RxQ (R,Q are obtained from the previous iteration). In practice, an implicit approach is used as described in 7.5 paragraph of [3]. According to [2] the number of operations we need is *3bn^3+O(n^2)* where b is the average number of bulge chases and bulge chase procedure cannot use high level BLAS operations.
 
 #### DSTEVX (BX+II)
-Uses bisection method to find eigenvalues, based on [Sturm's theorem](https://en.wikipedia.org/wiki/Sturm%27s_theorem) It has *O(nk)* complexity, where k is the number of eigenvalues. If eigenvelues are clustered, it uses Gram-Schmidt orthogonalization --> it is dependent on eigenvalues distribuiton.  Again, no hi-level BLAS here.[2]
+Uses bisection method to find eigenvalues, based on [Sturm's theorem](https://en.wikipedia.org/wiki/Sturm%27s_theorem) It has *O(nk)* complexity, where k is the number of eigenvalues. If eigenvelues are clustered, it uses Gram-Schmidt orthogonalization --> it is dependent on eigenvalues distribuiton.  Again, no high-level BLAS here.[2]
 
 #### MRRR
 MRRR (MR3) algorithm is a modification of inverse iteration without Gram-Schmidt orthogonalization --> we can get *O(n^2)* Again, no high-level BLAS routines and the overall complexity depends of the eigenvalues distribution. [2]. 
