@@ -28,3 +28,4 @@
 ### References
 * http://arxiv.org/pdf/1401.4950v1.pdf
 * http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
+* Cholesky decomposition is not needed for this report, but I wrote [this](https://github.com/yobibyte/yobiblog/issues/5) during preparation for the exam, so include it here.
