@@ -30,13 +30,21 @@ The generated data was then written to .csv files and read inside C program.
 
 ## Code
 
-Each experiment represent a separate run of a program that tests particular data file (10000 problems per file) with different problem dimension, eigenvalue distribution and algorithm to test. Inside each experiment there is a for loop with one iteration per problem. Before start of each iteration the garbage of L3 cache size was created to eliminate cache out of the experiments. PAPI library was used to check the real time of algorithm execution and the number of floating point operation per algorithm call. LAPACKE interface inside OpenBLAS was used, code was compiled with gcc.
+Each experiment represent a separate run of a program that tests particular data file (10000 problems per file) with different problem dimension (10, 20, 30, 40 and 50), eigenvalue distribution (random uniform and uniform eigenvalue distributions) and algorithm (BX+II, MRRR, QR) to test. Inside each experiment there is a for loop with one iteration per problem. Before start of each iteration the garbage of L3 cache size was created to eliminate cache out of the experiments. PAPI library was used to check the real time of algorithm execution and the number of floating point operation per algorithm call. LAPACKE interface inside OpenBLAS was used, code was compiled with gcc.
 
 ## Results
 
 ### Accuracy and speed comparison
 
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
+
+* Due to specific of DSTEQR, there is no relative tolerance parameter which defines when the problem is considered as solved. 
+* As for DSTEMR, there is TRYRAC input parameter, that (if it is true) will make the procedure to check if the tridiagonal matrix defines the eigenvalues to high relative accuracy ([documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)]. But using it did not show any difference neither in execution time nor in accuracy obtained.
+
+There also was a possibility to check DSTARRV FORTRAN procedure, but I did not get exactly how should I do it (OpenBLAS has no access to it) and I did not modify FORTRAN code.
+
+So, only DSTEVX that has relative tolerance parameter has adequate results for this experiment.
+
 
 ## Important considerations
 
