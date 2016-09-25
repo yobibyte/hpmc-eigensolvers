@@ -34,7 +34,11 @@ Each experiment represent a separate run of a program that tests particular data
 
 ## Results
 
+All the plotting was done using matplotlib in [this](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/results_analysis.ipynb) notebook. The data and results can be downloaded HERE.
+
 ### Accuracy and speed comparison
+
+**Important**: since DSTEVX has relative tolerance parameter, it influences the execution time and the final accuracy, I used 1e-16 RTOL parameter for these experiments.
 
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
 
@@ -49,7 +53,12 @@ So, only DSTEVX that has relative tolerance parameter has adequate results for t
 ## Important considerations
 
 * All the experiments carried out for this project use synthetic data. No real problems data as [here](http://www.netlib.org/lapack/lawnspdf/lawn183.pdf) was used.
-* only one architecture + tech specs
+* I was unable to use PAPI on my main PC that I use for work (there was some hardware support problem), so I ran all the experiments on my laptop:
+    * core i7-3520M (2 cores, 2.9GHz)
+    * L3 cache size: 4096K
+    * OS: Arch Linux with 4.6.4 kernel
+    * 16 GB RAM
+* There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I though, since we wanted actual accuracy, I would add these cases to final results as is.
 
 ## References
 * [1] http://arxiv.org/pdf/1401.4950v1.pdf
