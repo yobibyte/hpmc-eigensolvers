@@ -24,7 +24,13 @@ MRRR (MR3) algorithm is a modification of inverse iteration without Gram-Schmidt
 
 ## Data generation.
 
+The data was generated in [Jupyter notebook](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/hmpc-data-generation.ipynb). Initially the eigenvalues of needed dimension were generated (either sampled from standard random uniform distribution, or taken uniformly from [0,1]. Different distributions were taken, I suppose, to check the dependency of BX+II and MRRR on the eigenvalues clustering. Then, I got random orthogonal matrices Q of the same dimensions and got the problems by Q*M*Q' (for orthogonal matrices the inverse is equivalent to transposed). The equality of initial eigenvalues and solutions to given problems was checked using numpy.testing library.
+
+The generated data was then written to .csv files and read inside C program.
+
 ## Code
+
+Each experiment represent a separate run of a program that tests particular data file (10000 problems per file) with different problem dimension, eigenvalue distribution and algorithm to test. Inside each experiment there is a for loop with one iteration per problem. Before start of each iteration the garbage of L3 cache size was created to eliminate cache out of the experiments. PAPI library was used to check the real time of algorithm execution and the number of floating point operation per algorithm call. LAPACKE interface inside OpenBLAS was used, code was compiled with gcc.
 
 ## Results
 
