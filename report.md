@@ -82,14 +82,14 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
 
 * All the experiments carried out for this project use synthetic data. No real problems data as [here](http://www.netlib.org/lapack/lawnspdf/lawn183.pdf) was used.
 * I was unable to use PAPI on my work PC that I use for work (there was some hardware support problem), so I ran all the experiments on my laptop (But as far as I understand, we are interested only in relative speed, not absolute values, so, it's okay):
-    * core i7-3520M (2 cores, 2.9GHz)
+    * core i7-3520M (2 cores, 2.9GHz, Ivy Bridge (put it here as Sandy Bridge, for instance, gives wrong numbers for PAPI)
     * L3 cache size: 4096K
     * OS: Arch Linux with 4.6.4 kernel
     * 16 GB RAM
-* There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I though, since we wanted actual accuracy, I would add these cases to final results as is.
+* There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I thought, since we wanted actual accuracy, I would add these cases to final results as is.
 
 ## References
-* [1] http://arxiv.org/pdf/1401.4950v1.pdf
-* [2] http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
+* [1] MRRR-based Eigensolvers for Multi-core Processors and Supercomputers, Matthias Petschow: http://arxiv.org/pdf/1401.4950v1.pdf
+* [2] Performance and Accuracy of LAPACK’S Symmetric Tridiagonal Eigensolvers: http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
 * [3] Golub, Van Loan, Matrix Computations, [3rd edition](http://web.mit.edu/ehliu/Public/sclark/Golub%20G.H.,%20Van%20Loan%20C.F.-%20Matrix%20Computations.pdf)
 * [4] Cholesky decomposition is not needed for this report, but I wrote [this](https://github.com/yobibyte/yobiblog/issues/5) during preparation for the exam, so include it here (mostly because of the picture with the inverse).
