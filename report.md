@@ -54,6 +54,10 @@ From the following plots we can see that MRRR is the fastest for both eigenvalue
 <img class='center' src="pics/time_vs_dim.png">
 <img class='center' src="pics/loss_vs_dim.png"/>
 
+At the same time, DSTEQR does more FLOPS than DSTEVX, but it is faster on problems of our size. DSTEMR also does the least number of FLOPS in the experiments
+
+<img class='center' src="pics/flops_vs_dim.png"/>
+
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
 
 * Due to specific of DSTEQR, there is no relative tolerance parameter which defines when the problem is considered as solved. 
