@@ -86,7 +86,7 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
     * L3 cache size: 4096K
     * OS: Arch Linux with 4.6.4 kernel
     * 16 GB RAM
-* There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I though, since we wanted actual accuracy, I would add these cases to final results as is.
+* There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I thought, since we wanted actual accuracy, I would add these cases to final results as is.
 
 ## References
 * [1] http://arxiv.org/pdf/1401.4950v1.pdf
