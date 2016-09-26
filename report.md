@@ -87,7 +87,7 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
     * OS: Arch Linux with 4.6.4 kernel
     * 16 GB RAM
 * There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I thought, since we wanted actual accuracy, I would add these cases to final results as is.
-* **Attention!** According to [documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)(and that is not a typo or a joke) the subdiagonal array dimension should be **N**, not N-1.
+* **Attention!** According to DSTEMR [documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)(and that is not a typo or a joke) the subdiagonal array dimension should be **N**, not N-1.
 
 ## References
 * [1] MRRR-based Eigensolvers for Multi-core Processors and Supercomputers, Matthias Petschow: http://arxiv.org/pdf/1401.4950v1.pdf
