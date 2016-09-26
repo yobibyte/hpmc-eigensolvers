@@ -8,16 +8,6 @@
 // Study flops vs accuracy, for different accuracy levels. (use dlarrv for emr)
 // BX+II: DSTEVX, QR: DSTEQR, MR3: DSTEMR  
 // 
-// 
-// ################################################################################
-// TODO 3d flps, accuracy, problem size                                           #
-// TODO how flops vs accuracy for different accuracy lvls? Only one func has rtol #
-// TODO compile with -O0?                                                         # 
-// TODO play with TRYRAC for dstemr                                               #
-// TODO process correctly if we fail to solve                                     #
-// ################################################################################
-//
-//
 //
 // example code from here: https://icl.cs.utk.edu/projects/papi/wiki/PAPITopics:Getting_Started#The_Source_Code
 
