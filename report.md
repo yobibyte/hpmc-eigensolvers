@@ -40,6 +40,13 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 
 **Important**: since DSTEVX has relative tolerance parameter, it influences the execution time and the final accuracy, I used 1e-16 RTOL parameter for these experiments.
 
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/time_vs_dim.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_vs_dim.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tol_dstevx.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tryrac_dstemr.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/med_los_given_tol.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_given_tol.png?raw=true"/>
+
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
 
 * Due to specific of DSTEQR, there is no relative tolerance parameter which defines when the problem is considered as solved. 
