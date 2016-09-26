@@ -82,7 +82,7 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
 
 * All the experiments carried out for this project use synthetic data. No real problems data as [here](http://www.netlib.org/lapack/lawnspdf/lawn183.pdf) was used.
 * I was unable to use PAPI on my work PC that I use for work (there was some hardware support problem), so I ran all the experiments on my laptop (But as far as I understand, we are interested only in relative speed, not absolute values, so, it's okay):
-    * core i7-3520M (2 cores, 2.9GHz)
+    * core i7-3520M (2 cores, 2.9GHz, Ivy Bridge (put it here as Sandy Bridge, for instance, gives wrong numbers for PAPI)
     * L3 cache size: 4096K
     * OS: Arch Linux with 4.6.4 kernel
     * 16 GB RAM
