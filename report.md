@@ -35,7 +35,7 @@ elif type == 'uniform-eigenvalues-dist':
 
 Different distributions were taken, I suppose, to check the dependency of BX+II and MRRR on the eigenvalues clustering. Then, I got random orthogonal matrices Q of the same dimensions and got the problems by Q*M*Q' (for orthogonal matrices the inverse is equivalent to transposed). The equality of initial eigenvalues and solutions to given problems was checked using numpy.testing library.
 
-The generated data was then written to .csv files and read inside C program.
+The generated data was then written to .csv files and read inside C program. The data (along with the resulting plots) can be downloaded from [here](https://www.dropbox.com/s/4oqqk8v7av1ntpg/hpmc_data.zip?dl=0)
 
 ## Code
 
