@@ -59,7 +59,7 @@ From the following plots we can see that MRRR is the fastest (and the gap widens
 * Due to specific of DSTEQR, there is no relative tolerance parameter which defines when the problem is considered as solved. 
 * As for DSTEMR, there is TRYRAC input parameter, that (if it is true) will make the procedure to check if the tridiagonal matrix defines the eigenvalues to high relative accuracy ([documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)). But using it did not show any difference neither in execution time nor in accuracy obtained.
 
-There also was a possibility to check DSTARRV FORTRAN procedure, but I did not get exactly how should I do it (OpenBLAS has no access to it) and I did not modify FORTRAN code.
+There also was a possibility to check DLARRE/V FORTRAN procedures, but I did not get exactly how should I do it (OpenBLAS has no access to it) and I did not modify FORTRAN code.
 
 For DSTEVX, if we fix the accuracy level and carry out the experiments for several different ones, we can see that the number of FLOPS for the next accuracy level (one power of 10) growth exponentially. (x-axes are inverted, log-scale).
 
