@@ -89,7 +89,7 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
 * There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I thought, since we wanted actual accuracy, I would add these cases to final results as is.
 
 ## References
-* [1] http://arxiv.org/pdf/1401.4950v1.pdf
-* [2] http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
+* [1] MRRR-based Eigensolvers for Multi-core Processors and Supercomputers, Matthias Petschow: http://arxiv.org/pdf/1401.4950v1.pdf
+* [2] Performance and Accuracy of LAPACK’S Symmetric Tridiagonal Eigensolvers: http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
 * [3] Golub, Van Loan, Matrix Computations, [3rd edition](http://web.mit.edu/ehliu/Public/sclark/Golub%20G.H.,%20Van%20Loan%20C.F.-%20Matrix%20Computations.pdf)
 * [4] Cholesky decomposition is not needed for this report, but I wrote [this](https://github.com/yobibyte/yobiblog/issues/5) during preparation for the exam, so include it here (mostly because of the picture with the inverse).
