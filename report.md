@@ -43,7 +43,7 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 From the following plots we can see that MRRR is the fastest (and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
 
 <img class='center' src="pics/time_vs_dim.png">
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_vs_dim.png?raw=true"/>
+<img class='center' src="pics/loss_vs_dim.png"/>
 
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
 
@@ -54,20 +54,20 @@ There also was a possibility to check DSTARRV FORTRAN procedure, but I did not g
 
 For DSTEVX, if we fix the accuracy level and carry out the experiments for several different ones, we can see that the number of FLOPS for the next accuracy level (one power of 10) growth exponentially. (x-axes are inverted, log-scale).
 
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tol_dstevx.png?raw=true"/>
+<img class='center' src="pics/flops_given_tol_dstevx.png"/>
 
 Experiments with TRYRAC did not show any difference in the number of FLOPS. So, only DSTEVX that has relative tolerance parameter has adequate results for this experiment:
 
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tryrac_dstemr.png?raw=true"/>
+<img class='center' src="pics/flops_given_tryrac_dstemr.png"/>
 
 The next plot shows the expected result (that the actual accuracy when solving the eigenproblem is not bigger than the tolerance level we want it to achieve. But still, is it distributed almost over all the interval up to the tolerance level) At the same time, we can see that the bigger the problem size, the bigger the loss is (that was also shown at the first experiment).
 
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/med_los_given_tol.png?raw=true"/>
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_given_tol.png?raw=true"/>
+<img class='center' src="pics/med_los_given_tol.png"/>
+<img class='center' src="pics/loss_given_tol.png"/>
 
 Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50:
 
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_distr.png?raw=true"/>
+<img class='center' src="pics/loss_distr.png"/>
 
 ## Important considerations
 
