@@ -49,7 +49,7 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 
 **Important**: since DSTEVX has relative tolerance parameter, it influences the execution time and the final accuracy, I used 1e-16 RTOL parameter for these experiments.
 
-From the following plots we can see that MRRR is the fastest (and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
+From the following plots we can see that MRRR is the fastest for both eigenvalues distributions(and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
 
 <img class='center' src="pics/time_vs_dim.png">
 <img class='center' src="pics/loss_vs_dim.png"/>
@@ -74,7 +74,7 @@ The next plot shows the expected result (that the actual accuracy when solving t
 <img class='center' src="pics/med_los_given_tol.png"/>
 <img class='center' src="pics/loss_given_tol.png"/>
 
-Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50:
+Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50. So, we can see, that given the particular tolerance level, that the problems with uniform eigenvalues distribution are easier to solve.
 
 <img class='center' src="pics/loss_distr.png"/>
 
