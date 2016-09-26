@@ -24,7 +24,16 @@ MRRR (MR3) algorithm is a modification of inverse iteration without Gram-Schmidt
 
 ## Data generation.
 
-The data was generated in [Jupyter notebook](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/hmpc-data-generation.ipynb). Initially the eigenvalues of needed dimension were generated (either sampled from standard random uniform distribution, or taken uniformly from [0,1]. Different distributions were taken, I suppose, to check the dependency of BX+II and MRRR on the eigenvalues clustering. Then, I got random orthogonal matrices Q of the same dimensions and got the problems by Q*M*Q' (for orthogonal matrices the inverse is equivalent to transposed). The equality of initial eigenvalues and solutions to given problems was checked using numpy.testing library.
+The data was generated in [Jupyter notebook](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/hmpc-data-generation.ipynb). Initially the eigenvalues of needed dimension were generated (either sampled from standard random uniform distribution, or taken uniformly from [0,1]:
+
+```python
+if type == 'standard-random-uniform':
+  eigenvalues = [np.random.uniform(size=problem_size) for i in range(n_examples)]
+elif type == 'uniform-eigenvalues-dist':
+  eigenvalues = [[eps+(k-1)*(1-eps)/(problem_size-1) for k in range(1,problem_size+1)] for i in range(n_examples)]
+```
+
+Different distributions were taken, I suppose, to check the dependency of BX+II and MRRR on the eigenvalues clustering. Then, I got random orthogonal matrices Q of the same dimensions and got the problems by Q*M*Q' (for orthogonal matrices the inverse is equivalent to transposed). The equality of initial eigenvalues and solutions to given problems was checked using numpy.testing library.
 
 The generated data was then written to .csv files and read inside C program.
 
