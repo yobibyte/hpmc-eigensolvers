@@ -56,7 +56,7 @@ For DSTEVX, if we fix the accuracy level and carry out the experiments for sever
 
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tol_dstevx.png?raw=true"/>
 
-Experiments with TRYRAC did not show any difference in the number of FLOPS:
+Experiments with TRYRAC did not show any difference in the number of FLOPS. So, only DSTEVX that has relative tolerance parameter has adequate results for this experiment:
 
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tryrac_dstemr.png?raw=true"/>
 
@@ -65,8 +65,9 @@ The next plot shows the expected result (that the actual accuracy when solving t
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/med_los_given_tol.png?raw=true"/>
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_given_tol.png?raw=true"/>
 
-So, only DSTEVX that has relative tolerance parameter has adequate results for this experiment.
+Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50:
 
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_distr.png?raw=true"/>
 
 ## Important considerations
 
