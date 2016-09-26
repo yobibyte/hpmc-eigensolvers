@@ -35,8 +35,6 @@
 struct Eigenproblem {
   int p_size;
   double *eigenvalues;
-  // before reduction to symmetric tridiagonal
-  // double *matrix;
   // diagonal after reduction to symm tridiagonal
   double *D;
   // subdiagonal after reduction to symm tridiagonal
@@ -163,7 +161,6 @@ void load_problems(char *filename, struct Eigenproblem *problems) {
     double TAU[cpdim-1];
     double V[cpdim];
     
-    //print_array(N_PROBLEMS, curr_eigenvals);
     LAPACKE_dsytrd(LAPACK_ROW_MAJOR, 'U', cpdim, curr_matrix, cpdim, D, E, TAU);
     construct_eigenproblem(&problems[i], cpdim, curr_eigenvals, D, E);
     
@@ -246,7 +243,6 @@ void test_dsteqr(char *filename, char *exp_type, char *accuracy_type) {
     accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
-      //accuracies[i] = accuracies[i-1];
     }
     destroy_eigenproblem(&p);
   }
@@ -300,7 +296,6 @@ void test_dstevx(char *filename, char *exp_type, double tolerance, char *accurac
     accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
-      //accuracies[i] = accuracies[i-1];
     }
 
     destroy_eigenproblem(&p);
@@ -356,7 +351,6 @@ void test_dstemr(char *filename, char *exp_type, lapack_logical tryrac, char *ac
     accuracies[i] = get_accuracy(p.p_size, Z);
     if(info != 0) {
       printf("Eigenproblem #%d was not solved correctly!\n", i);  
-      //accuracies[i] = accuracies[i-1];
     }
 
     accuracies[i] = get_accuracy(p.p_size, Z);
