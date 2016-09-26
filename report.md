@@ -42,7 +42,7 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 
 From the following plots we can see that MRRR is the fastest (and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
 
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/time_vs_dim.png?raw=true"/>
+<img class='center' src="pics/time_vs_dim.png/>
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_vs_dim.png?raw=true"/>
 
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
