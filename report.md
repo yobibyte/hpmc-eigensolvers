@@ -35,7 +35,7 @@ elif type == 'uniform-eigenvalues-dist':
 
 Different distributions were taken, I suppose, to check the dependency of BX+II and MRRR on the eigenvalues clustering. Then, I got random orthogonal matrices Q of the same dimensions and got the problems by Q*M*Q' (for orthogonal matrices the inverse is equivalent to transposed). The equality of initial eigenvalues and solutions to given problems was checked using numpy.testing library.
 
-The generated data was then written to .csv files and read inside C program.
+The generated data was then written to .csv files and read inside C program. The data (along with the resulting plots) can be downloaded from [here](https://www.dropbox.com/s/4oqqk8v7av1ntpg/hpmc_data.zip?dl=0).
 
 ## Code
 
@@ -43,13 +43,13 @@ Each experiment represent a separate run of a program that tests particular data
 
 ## Results
 
-All the plotting was done using matplotlib in [this](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/results_analysis.ipynb) notebook. The data and results can be downloaded HERE.
+All the plotting was done using matplotlib in [this](https://github.com/yobibyte/hpmc-eigensolvers/blob/master/results_analysis.ipynb) notebook.
 
 ### Accuracy and speed comparison
 
 **Important**: since DSTEVX has relative tolerance parameter, it influences the execution time and the final accuracy, I used 1e-16 RTOL parameter for these experiments.
 
-From the following plots we can see that MRRR is the fastest (and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
+From the following plots we can see that MRRR is the fastest for both eigenvalues distributions(and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
 
 <img class='center' src="pics/time_vs_dim.png">
 <img class='center' src="pics/loss_vs_dim.png"/>
@@ -74,7 +74,7 @@ The next plot shows the expected result (that the actual accuracy when solving t
 <img class='center' src="pics/med_los_given_tol.png"/>
 <img class='center' src="pics/loss_given_tol.png"/>
 
-Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50:
+Just of curiosity I plotted the distribution of actuall orthogonality losses for DSTEVX, when the accuracy level is 1e-14 and the problem size is 50. So, we can see, that given the particular tolerance level, that the problems with uniform eigenvalues distribution are easier to solve.
 
 <img class='center' src="pics/loss_distr.png"/>
 
@@ -87,6 +87,7 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
     * OS: Arch Linux with 4.6.4 kernel
     * 16 GB RAM
 * There were some cases when the problems were not solved correctly (when the actual error was larger than relative tolerance) and I wanted to rerun them. But then I thought, since we wanted actual accuracy, I would add these cases to final results as is.
+* **Attention!** According to DSTEMR [documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)(and that is not a typo or a joke) the subdiagonal array dimension should be **N**, not N-1.
 
 ## References
 * [1] MRRR-based Eigensolvers for Multi-core Processors and Supercomputers, Matthias Petschow: http://arxiv.org/pdf/1401.4950v1.pdf
