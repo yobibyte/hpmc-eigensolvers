@@ -40,12 +40,10 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 
 **Important**: since DSTEVX has relative tolerance parameter, it influences the execution time and the final accuracy, I used 1e-16 RTOL parameter for these experiments.
 
+From the following plots we can see that MRRR is the fastest (and the gap widens with the problem size). At the same time, it is the least accurate, given the fact in the **Important** section. Given the similar accuracy, we can say, that BX+II is slower, but it can be faster if we need less accuracy level.
+
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/time_vs_dim.png?raw=true"/>
 <img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_vs_dim.png?raw=true"/>
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tol_dstevx.png?raw=true"/>
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tryrac_dstemr.png?raw=true"/>
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/med_los_given_tol.png?raw=true"/>
-<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_given_tol.png?raw=true"/>
 
 ### Accuracy vs FLOPS (number of floating point operations, **not** flop per second)
 
@@ -53,6 +51,19 @@ All the plotting was done using matplotlib in [this](https://github.com/yobibyte
 * As for DSTEMR, there is TRYRAC input parameter, that (if it is true) will make the procedure to check if the tridiagonal matrix defines the eigenvalues to high relative accuracy ([documentation](http://www.netlib.org/lapack/explore-html/d9/d1e/dstemr_8f_a613f73c16db5b9b111d56fb3e3feff0d.html#a613f73c16db5b9b111d56fb3e3feff0d)]. But using it did not show any difference neither in execution time nor in accuracy obtained.
 
 There also was a possibility to check DSTARRV FORTRAN procedure, but I did not get exactly how should I do it (OpenBLAS has no access to it) and I did not modify FORTRAN code.
+
+For DSTEVX, if we fix the accuracy level and carry out the experiments for several different ones, we can see that the number of FLOPS for the next accuracy level (one power of 10) growth exponentially. (x-axes are inverted, log-scale).
+
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tol_dstevx.png?raw=true"/>
+
+Experiments with TRYRAC did not show any difference in the number of FLOPS:
+
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/flops_given_tryrac_dstemr.png?raw=true"/>
+
+The next plot shows the expected result (that the actual accuracy when solving the eigenproblem is not bigger than the tolerance level we want it to achieve. But still, is it distributed almost over all the interval up to the tolerance level) At the same time, we can see that the bigger the problem size, the bigger the loss is (that was also shown at the first experiment).
+
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/med_los_given_tol.png?raw=true"/>
+<img class='center' src="https://github.com/yobibyte/hpmc-eigensolvers/blob/master/pics/loss_given_tol.png?raw=true"/>
 
 So, only DSTEVX that has relative tolerance parameter has adequate results for this experiment.
 
