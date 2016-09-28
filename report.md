@@ -98,3 +98,11 @@ Just of curiosity I plotted the distribution of actuall orthogonality losses for
 * [2] Performance and Accuracy of LAPACK’S Symmetric Tridiagonal Eigensolvers: http://www.netlib.org/lapack/lawnspdf/lawn183.pdf
 * [3] Golub, Van Loan, Matrix Computations, [3rd edition](http://web.mit.edu/ehliu/Public/sclark/Golub%20G.H.,%20Van%20Loan%20C.F.-%20Matrix%20Computations.pdf)
 * [4] Cholesky decomposition is not needed for this report, but I wrote [this](https://github.com/yobibyte/yobiblog/issues/5) during preparation for the exam, so include it here (mostly because of the picture with the inverse).
+
+## UPDATE AFTER DEADLINE:
+
+
+
+<img class='center' src="pics/performance_vs_dim.png"/>
+
+* In code I use GEMM when computing the accuracy, it can be SYRK
